@@ -20,6 +20,8 @@ public class BowlingScoring : MonoBehaviour
     public int currentThrow;
     public GameObject scoreSheetContainer;
     public bool scoreSheetShowing;
+    private bool frame10roll1Strike;
+    private bool frame10roll2StrikeOrSpare;
     private bool gameOver;
     private float scoreSheetTimer;
     public float scoreSheetTimeout;
@@ -62,8 +64,16 @@ public class BowlingScoring : MonoBehaviour
             if (gameScore[currentFrame, 0] == 10)
             {
                 roll1Texts[currentFrame].SetText("X");
-                currentFrame++;
-                currentThrow = 0;
+                if (currentFrame == 9)
+                {
+                    frame10roll1Strike = true;
+                    currentThrow += 1;
+                }
+                else
+                {
+                    currentFrame++;
+                    currentThrow = 0;
+                }
                 pinManager.resetPins();
             }
             else
@@ -78,12 +88,14 @@ public class BowlingScoring : MonoBehaviour
             if (gameScore[currentFrame, currentThrow] == 10)
             {
                 roll2Texts[currentFrame].SetText("X");
+                frame10roll2StrikeOrSpare = true;
                 currentThrow += 1;
                 pinManager.resetPins();
             }
             else if (gameScore[currentFrame, 0] + gameScore[currentFrame, 1] == 10)
             {
                 roll2Texts[currentFrame].SetText("/");
+                frame10roll2StrikeOrSpare = true;
                 currentThrow += 1;
                 pinManager.resetPins();
             }
@@ -146,13 +158,11 @@ public class BowlingScoring : MonoBehaviour
         {
             frameScore[frame] = gameScore[frame, 0] + gameScore[frame, 1];
 
-            if (gameOver)
+            if (frame == 9 && (frameScore[frame] + gameScore[frame, 2] > 0))
             {
                 frameScore[frame] += gameScore[frame, 2];
                 overallScore += frameScore[frame];
                 frameTotalsText[frame].SetText("" + overallScore);
-
-                return;
             }
             else if (gameScore[frame, 0] == 10)
             {
@@ -195,10 +205,10 @@ public class BowlingScoring : MonoBehaviour
             {
                 frameTotalsText[frame].SetText("");
             }
-
-            // update total current score
-            overallScoreText.SetText("" + overallScore);
         }
+
+        // update total current score
+        overallScoreText.SetText("" + overallScore);
     }
 
     private int addFutureScores (int scoresToAdd, int frameWithBonus)
@@ -252,13 +262,27 @@ public class BowlingScoring : MonoBehaviour
         } 
         else if (currentThrow == 1)
         {
-            gameScore[currentFrame, currentThrow] = currentScore - gameScore [currentFrame, 0];
+            if (frame10roll1Strike)
+            {
+                gameScore[currentFrame, currentThrow] = currentScore;
+            }
+            else
+            {
+                gameScore[currentFrame, currentThrow] = currentScore - gameScore[currentFrame, 0];
+            }
         } 
         else if (currentThrow == 2)
         {
-            gameScore[currentFrame, currentThrow] = currentScore - gameScore[currentFrame, 1] - gameScore[currentFrame, 0];
+
+            if (frame10roll2StrikeOrSpare)
+            {
+                gameScore[currentFrame, currentThrow] = currentScore;
+            }
+            else
+            {
+                gameScore[currentFrame, currentThrow] = currentScore - gameScore[currentFrame, 1];
+            }
         }
-        
     }
 
     public void showScoreSheet ()
