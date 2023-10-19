@@ -6,6 +6,7 @@ public class PinManager : MonoBehaviour
 {
     public GameObject[] pins;
     private Vector3[] pinSetupLocations = new Vector3[10];
+    public bool[] pinKnockedOver = new bool[10];
 
     // Start is called before the first frame update
     void Start()
@@ -26,12 +27,14 @@ public class PinManager : MonoBehaviour
     {
         for (int i = 0; i < pins.Length; i++)
         {
-            Debug.Log("Pin " + i + " current position: " + pins[i].transform.position);
-            Debug.Log("Pin " + i + " setup position: " + pinSetupLocations[i]);
+            float pinKnockbackdistance = Vector3.Distance(pins[i].transform.position, pinSetupLocations[i]);
 
-            if (pins[i].transform.position != pinSetupLocations[i])
+            //Debug.Log("Pin " + pins[i] + " knockback: " + pinKnockbackdistance);
+
+            if (pinKnockbackdistance > 0.1f && pins[i].activeInHierarchy)
             {
                 pins[i].SetActive(false);
+                pinKnockedOver[i] = true;
             }
         }
     }
@@ -43,6 +46,7 @@ public class PinManager : MonoBehaviour
             pins[i].SetActive(true);
             pins[i].transform.position = pinSetupLocations[i];
             pins[i].transform.rotation = new Quaternion(0, 0, 0, 0);
+            pinKnockedOver[i] = false;
         }
     }
 }
