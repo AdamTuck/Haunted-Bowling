@@ -7,9 +7,12 @@ public class PlayerController : MonoBehaviour
     BowlingScoring bowlingScorer;
 
     [SerializeField] private Transform throwingArrow;
+    [SerializeField] private Animator arrowAnimator;
     public float playerMoveSpeed;
     public GameObject bowlingBall;
     public GameObject ballSpawnPoint;
+    [SerializeField] private Rigidbody[] bowlingBallColours;
+    [SerializeField] private Rigidbody selectedBall;
     public float throwSpeed;
     public float arrowMinX, arrowMaxX;
 
@@ -20,6 +23,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         bowlingScorer = GetComponent<BowlingScoring>();
+        resetThrow();
     }
 
     // Update is called once per frame
@@ -39,10 +43,14 @@ public class PlayerController : MonoBehaviour
             if (!throwInProgress && !bowlingScorer.scoreSheetShowing)
             {
                 throwInProgress = true;
+                arrowAnimator.SetBool("Aiming", false);
 
-                resetBall();
+                Destroy(selectedBall);
+                selectedBall = Instantiate(bowlingBallColours[Random.Range(0, 8)], 
+                    new Vector3(throwingArrow.position.x, ballSpawnPoint.transform.position.y, 
+                    ballSpawnPoint.transform.position.z), throwingArrow.transform.rotation);
 
-                bowlingBall.GetComponent<Rigidbody>().velocity = bowlingBall.transform.forward * throwSpeed;
+                selectedBall.GetComponent<Rigidbody>().velocity = selectedBall.transform.forward * throwSpeed;
             }
         }
     }
@@ -59,23 +67,20 @@ public class PlayerController : MonoBehaviour
             throwTimer = 0;
             throwInProgress = false;
 
-            resetBall();
             bowlingScorer.advanceScore();
+            resetThrow();
         }
     }
 
     private void UpdateThrowArrow()
     {
-        throwingArrow.position += throwingArrow.right * Input.GetAxis("Horizontal") * playerMoveSpeed * Time.deltaTime;
-
         float movePosition = Input.GetAxis("Horizontal") * playerMoveSpeed * Time.deltaTime;
-        throwingArrow.position = new Vector3(Mathf.Clamp(throwingArrow.position.x + movePosition, arrowMinX, arrowMaxX), throwingArrow.position.y, throwingArrow.position.z);
+        throwingArrow.position = new Vector3(Mathf.Clamp(throwingArrow.position.x + movePosition, arrowMinX, arrowMaxX), 
+            throwingArrow.position.y, throwingArrow.position.z);
     }
 
-    void resetBall ()
+    void resetThrow ()
     {
-        bowlingBall.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
-        bowlingBall.transform.rotation = new Quaternion(0, 0, 0, 0);
-        bowlingBall.transform.position = (new Vector3(throwingArrow.transform.position.x, ballSpawnPoint.transform.position.y, ballSpawnPoint.transform.position.z));
+        arrowAnimator.SetBool("Aiming", true);
     }
 }
