@@ -44,6 +44,10 @@ public class PinManager : MonoBehaviour
         for (int i = 0; i < pins.Length; i++)
         {
             pins[i].SetActive(true);
+
+            Rigidbody rb = pins[i].GetComponent<Rigidbody>();
+            rb.velocity = Vector3.zero;
+
             pins[i].transform.position = pinSetupLocations[i];
             pins[i].transform.rotation = new Quaternion(0, 0, 0, 0);
             pinKnockedOver[i] = false;

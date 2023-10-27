@@ -13,6 +13,12 @@ public class BowlingScoring : MonoBehaviour
     [SerializeField] private TextMeshProUGUI[] frameTotalsText;
     [SerializeField] private TextMeshProUGUI overallScoreText;
 
+    [SerializeField] private TextMeshProUGUI[] roll1TextsScreen;
+    [SerializeField] private TextMeshProUGUI[] roll2TextsScreen;
+    [SerializeField] private TextMeshProUGUI roll3TextScreen;
+    [SerializeField] private TextMeshProUGUI[] frameTotalsTextScreen;
+    [SerializeField] private TextMeshProUGUI overallScoreTextScreen;
+
     public int[,] gameScore = new int[10,3];
     public int[] frameScore = new int[10];
     public int overallScore;
@@ -20,11 +26,14 @@ public class BowlingScoring : MonoBehaviour
     public int currentThrow;
     public GameObject scoreSheetContainer;
     public bool scoreSheetShowing;
+    private bool justThrewStrikeOrSpare;
     private bool frame10roll1Strike;
     private bool frame10roll2StrikeOrSpare;
     private bool gameOver;
     private float scoreSheetTimer;
     public float scoreSheetTimeout;
+
+    [SerializeField] private GameObject celebrationScreen;
 
     // Start is called before the first frame update
     void Start()
@@ -51,9 +60,10 @@ public class BowlingScoring : MonoBehaviour
         pinManager.hideKnockedPins();
 
         countPoints();
-        updateFrameAndThrow();
         updateTotals();
+        updateFrameAndThrow();
         showScoreSheet();
+        updateScreenScoring();
     }
 
     private void updateFrameAndThrow()
@@ -64,6 +74,7 @@ public class BowlingScoring : MonoBehaviour
             if (gameScore[currentFrame, 0] == 10)
             {
                 roll1Texts[currentFrame].SetText("X");
+                justThrewStrikeOrSpare = true;
                 if (currentFrame == 9)
                 {
                     frame10roll1Strike = true;
@@ -78,7 +89,15 @@ public class BowlingScoring : MonoBehaviour
             }
             else
             {
-                roll1Texts[currentFrame].SetText("" + gameScore[currentFrame, currentThrow]);
+                if (gameScore[currentFrame, currentThrow] > 0)
+                {
+                    roll1Texts[currentFrame].SetText("" + gameScore[currentFrame, currentThrow]);
+                }
+                else
+                {
+                    roll1Texts[currentFrame].SetText("-");
+                }
+
                 currentThrow += 1;
             }
         }
@@ -88,6 +107,7 @@ public class BowlingScoring : MonoBehaviour
             if (gameScore[currentFrame, currentThrow] == 10)
             {
                 roll2Texts[currentFrame].SetText("X");
+                justThrewStrikeOrSpare = true;
                 frame10roll2StrikeOrSpare = true;
                 currentThrow += 1;
                 pinManager.resetPins();
@@ -95,6 +115,7 @@ public class BowlingScoring : MonoBehaviour
             else if (gameScore[currentFrame, 0] + gameScore[currentFrame, 1] == 10)
             {
                 roll2Texts[currentFrame].SetText("/");
+                justThrewStrikeOrSpare = true;
                 frame10roll2StrikeOrSpare = true;
                 currentThrow += 1;
                 pinManager.resetPins();
@@ -102,12 +123,29 @@ public class BowlingScoring : MonoBehaviour
             else if (gameScore[currentFrame,0] == 10)
             {
                 // if there was a strike in frame 10 roll 1, continue the game until 3 rolls
-                roll2Texts[currentFrame].SetText("" + gameScore[currentFrame, currentThrow]);
+                if (gameScore[currentFrame, currentThrow] > 0)
+                {
+                    roll2Texts[currentFrame].SetText("" + gameScore[currentFrame, currentThrow]);
+                }
+                else
+                {
+                    roll2Texts[currentFrame].SetText("-");
+                }
+
                 currentThrow += 1;
             }
             else
             {
-                roll2Texts[currentFrame].SetText("" + gameScore[currentFrame, currentThrow]);
+                if (gameScore[currentFrame, currentThrow] > 0)
+                {
+                    roll2Texts[currentFrame].SetText("" + gameScore[currentFrame, currentThrow]);
+                }
+                else
+                {
+                    roll2Texts[currentFrame].SetText("-");
+                }
+
+                roll3Text.SetText("-");
                 gameOver = true;
             }
 
@@ -119,10 +157,18 @@ public class BowlingScoring : MonoBehaviour
             if (gameScore[currentFrame, 0] + gameScore[currentFrame, 1] == 10)
             {
                 roll2Texts[currentFrame].SetText("/");
+                justThrewStrikeOrSpare = true;
             }
             else
             {
-                roll2Texts[currentFrame].SetText("" + gameScore[currentFrame, currentThrow]);
+                if (gameScore[currentFrame, currentThrow] > 0)
+                {
+                    roll2Texts[currentFrame].SetText("" + gameScore[currentFrame, currentThrow]);
+                }
+                else
+                {
+                    roll2Texts[currentFrame].SetText("-");
+                }
             }
 
             currentThrow = 0;
@@ -136,10 +182,12 @@ public class BowlingScoring : MonoBehaviour
             if (gameScore[currentFrame, currentThrow] == 10)
             {
                 roll3Text.SetText("X");
+                justThrewStrikeOrSpare = true;
             }
             else if (gameScore[currentFrame, 0] + gameScore[currentFrame, 1] == 10)
             {
                 roll3Text.SetText("/");
+                justThrewStrikeOrSpare = true;
             }
             else
             {
@@ -152,13 +200,14 @@ public class BowlingScoring : MonoBehaviour
 
     void updateTotals()
     {
+        // Totals are updated after the current frame and throw are incremented
         overallScore = 0;
 
         for (int frame = 0; frame < 10; frame++)
         {
             frameScore[frame] = gameScore[frame, 0] + gameScore[frame, 1];
 
-            if (frame == 9 && (frameScore[frame] + gameScore[frame, 2] > 0))
+            if (frame == 9)
             {
                 frameScore[frame] += gameScore[frame, 2];
                 overallScore += frameScore[frame];
@@ -168,7 +217,9 @@ public class BowlingScoring : MonoBehaviour
             {
                 int bonusScore = addFutureScores(2,frame);
 
-                if (bonusScore > 0)
+                Debug.Log("Frame " + frame + " Strike Bonus Added: " + bonusScore);
+
+                if (currentFrame >= frame+2 || (currentFrame == frame + 1 && currentThrow >= 1))
                 {
                     overallScore += frameScore[frame] + bonusScore;
                     frameTotalsText[frame].SetText("" + overallScore);
@@ -183,7 +234,9 @@ public class BowlingScoring : MonoBehaviour
             {
                 int bonusScore = addFutureScores(1,frame);
 
-                if (bonusScore > 0)
+                Debug.Log("Frame " + frame + " Spare Bonus Added: " + bonusScore);
+
+                if ((currentFrame == frame+1 && currentThrow >= 1) || currentFrame >= frame+2 || bonusScore == 10)
                 {
                     overallScore += frameScore[frame] + bonusScore;
                     frameTotalsText[frame].SetText("" + overallScore);
@@ -220,10 +273,16 @@ public class BowlingScoring : MonoBehaviour
         {
             for (int roll = 0; roll < 3; roll++)
             {
-                if (gameScore[frame, roll] > 0)
+                if (roll < 2 || frame == 9)
                 {
                     bonusScore += gameScore[frame, roll];
                     bonusesAdded++;
+                }
+
+                // Reduces bonuses added by 1 which will bypass the next roll on all frames except frame 10
+                if (gameScore[frame, roll] == 10 && roll == 0 && frame <= 8)
+                {
+                    bonusesAdded--;
                 }
 
                 if (bonusesAdded == scoresToAdd)
@@ -287,6 +346,11 @@ public class BowlingScoring : MonoBehaviour
 
     public void showScoreSheet ()
     {
+        if (justThrewStrikeOrSpare)
+        {
+            celebrationScreen.SetActive(true);
+        }
+
         LeanTween.moveLocalY(scoreSheetContainer, -445.8f, 0.5f);
         scoreSheetShowing = true;
     }
@@ -295,6 +359,19 @@ public class BowlingScoring : MonoBehaviour
     {
         LeanTween.moveLocalY(scoreSheetContainer, -645, 0.5f);
         scoreSheetShowing = false;
+        justThrewStrikeOrSpare = false;
+        celebrationScreen.SetActive(false);
         scoreSheetTimer = 0;
+    }
+
+    private void updateScreenScoring()
+    {
+        for (int frame=0; frame < 10; frame++)
+        {
+            roll1TextsScreen[frame].SetText(roll1Texts[frame].text);
+            roll2TextsScreen[frame].SetText(roll2Texts[frame].text);
+            frameTotalsTextScreen[frame].SetText(frameTotalsText[frame].text);
+        }
+        overallScoreTextScreen.SetText("" + overallScoreText.text);
     }
 }

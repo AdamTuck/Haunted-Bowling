@@ -11,19 +11,21 @@ public class PlayerController : MonoBehaviour
     public float playerMoveSpeed;
     public GameObject bowlingBall;
     public GameObject ballSpawnPoint;
-    [SerializeField] private Rigidbody[] bowlingBallColours;
-    [SerializeField] private Rigidbody selectedBall;
+    [SerializeField] private GameObject[] bowlingBallColours;
+    [SerializeField] private GameObject selectedBall;
     public float throwSpeed;
     public float arrowMinX, arrowMaxX;
 
     public bool throwInProgress;
-    public float throwTimer;
-    public float throwDuration;
+    public bool throwCompleted;
+    public float throwProgressTimer;
+    public float throwCompletedTimer;
+    public float throwProgressDuration;
+    public float throwCompletedDuration;
 
     private void Start()
     {
         bowlingScorer = GetComponent<BowlingScoring>();
-        resetThrow();
     }
 
     // Update is called once per frame
@@ -40,12 +42,11 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.W))
         {
-            if (!throwInProgress && !bowlingScorer.scoreSheetShowing)
+            if (!throwInProgress && !throwCompleted && !bowlingScorer.scoreSheetShowing)
             {
                 throwInProgress = true;
                 arrowAnimator.SetBool("Aiming", false);
 
-                Destroy(selectedBall);
                 selectedBall = Instantiate(bowlingBallColours[Random.Range(0, 8)], 
                     new Vector3(throwingArrow.position.x, ballSpawnPoint.transform.position.y, 
                     ballSpawnPoint.transform.position.z), throwingArrow.transform.rotation);
@@ -59,13 +60,23 @@ public class PlayerController : MonoBehaviour
     {
         if (throwInProgress)
         {
-            throwTimer += Time.deltaTime;
+            throwProgressTimer += Time.deltaTime;
         }
 
-        if (throwTimer >= throwDuration)
+        if (throwCompleted)
         {
-            throwTimer = 0;
+            throwCompletedTimer += Time.deltaTime;
             throwInProgress = false;
+        }
+
+        if (throwCompletedTimer >= throwCompletedDuration || throwProgressTimer >= throwProgressDuration)
+        {
+            throwProgressTimer = 0;
+            throwCompletedTimer = 0;
+            throwCompleted = false;
+            throwInProgress = false;
+
+            Destroy(selectedBall);
 
             bowlingScorer.advanceScore();
             resetThrow();
@@ -74,13 +85,21 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateThrowArrow()
     {
+        if (bowlingScorer.scoreSheetShowing || throwInProgress || throwCompleted)
+        {
+            arrowAnimator.SetBool("Aiming", false);
+        } else
+        {
+            arrowAnimator.SetBool("Aiming", true);
+        }
+
         float movePosition = Input.GetAxis("Horizontal") * playerMoveSpeed * Time.deltaTime;
         throwingArrow.position = new Vector3(Mathf.Clamp(throwingArrow.position.x + movePosition, arrowMinX, arrowMaxX), 
             throwingArrow.position.y, throwingArrow.position.z);
     }
 
-    void resetThrow ()
+    public void resetThrow ()
     {
-        arrowAnimator.SetBool("Aiming", true);
+        //arrowAnimator.SetBool("Aiming", true);
     }
 }
