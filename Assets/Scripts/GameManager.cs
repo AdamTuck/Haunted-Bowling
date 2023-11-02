@@ -16,7 +16,6 @@ public class GameManager : MonoBehaviour
         bowlingScorer = FindObjectOfType<BowlingScoring>();
 
         StartGame();
-        playerController.resetThrow();
     }
 
     private void Update()
@@ -26,11 +25,12 @@ public class GameManager : MonoBehaviour
 
     public void StartGame ()
     {
-
+        playerController.resetThrow();
     }
 
-    public void SetNextThrow ()
+    public void ResetGame ()
     {
-
+        bowlingScorer.resetScoring();
+        pinManager.resetPins();
     }
 }
