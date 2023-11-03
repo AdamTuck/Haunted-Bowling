@@ -209,7 +209,7 @@ public class BowlingScoring : MonoBehaviour
         {
             frameScore[frame] = gameScore[frame, 0] + gameScore[frame, 1];
 
-            if (frame == 9)
+            if (frame == 9 && currentFrame == 9)
             {
                 frameScore[frame] += gameScore[frame, 2];
                 overallScore += frameScore[frame];
