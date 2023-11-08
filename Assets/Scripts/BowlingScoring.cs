@@ -33,6 +33,9 @@ public class BowlingScoring : MonoBehaviour
     [SerializeField] private GameObject strikeSprite;
     [SerializeField] private GameObject spareSprite;
 
+    [SerializeField] private AudioSource strikeAudio;
+    [SerializeField] private AudioSource spareAudio;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -352,11 +355,13 @@ public class BowlingScoring : MonoBehaviour
         {
             strikeSprite.SetActive(true);
             celebrationScreen.SetActive(true);
+            strikeAudio.Play();
         }
         else if (justThrewSpare)
         {
             spareSprite.SetActive(true);
             celebrationScreen.SetActive(true);
+            spareAudio.Play();
         }
 
         LeanTween.moveLocalY(scoreSheetContainer, -175.7391f, 0.5f);

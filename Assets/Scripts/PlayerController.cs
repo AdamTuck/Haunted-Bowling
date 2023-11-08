@@ -52,6 +52,7 @@ public class PlayerController : MonoBehaviour
                     ballSpawnPoint.transform.position.z), throwingArrow.transform.rotation);
 
                 selectedBall.GetComponent<Rigidbody>().velocity = selectedBall.transform.forward * throwSpeed;
+                selectedBall.GetComponent<AudioSource>().Play();
             }
         }
     }

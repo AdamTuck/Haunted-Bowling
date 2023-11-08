@@ -179,8 +179,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a0b70d8374cf6c49bfef3d731fab7ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pinForAudio: {fileID: 2197372393921741861, guid: 4c1fa7edde587694ab8f5dd531cb38d3,
-    type: 3}
 --- !u!82 &2323238383229497638
 AudioSource:
   m_ObjectHideFlags: 0
@@ -192,8 +190,8 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: b7b574d9978d62f4e8bcab1bd84bdf59, type: 3}
-  m_PlayOnAwake: 1
-  m_Volume: 0.51
+  m_PlayOnAwake: 0
+  m_Volume: 0.084
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -237,7 +235,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
