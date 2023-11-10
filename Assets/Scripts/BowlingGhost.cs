@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class BowlingGhost : MonoBehaviour
 {
+    [SerializeField] GameObject ghostObject;
     [SerializeField] GameObject ghostBall;
     [SerializeField] GameObject ballSpawn;
     [SerializeField] GameObject[] ghostPins;
@@ -12,6 +13,7 @@ public class BowlingGhost : MonoBehaviour
     [SerializeField] float ghostThrowDelayMinLength;
     [SerializeField] float ghostThrowDelayMaxLength;
 
+    private Animator ghostAnimator;
     private Vector3[] ghostPinSetupLocations = new Vector3[10];
     private bool[] ghostPinKnockedOver = new bool[10];
     private GameObject selectedBall;
@@ -26,6 +28,8 @@ public class BowlingGhost : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        ghostAnimator = ghostObject.GetComponent<Animator>();
+
         for (int i = 0; i < ghostPins.Length; i++)
         {
             ghostPinSetupLocations[i] = ghostPins[i].transform.position;
@@ -90,6 +94,9 @@ public class BowlingGhost : MonoBehaviour
             ghostThrowInProgress = true;
             ghostThrowTimer = 0;
 
+            ghostAnimator.SetBool("Celebrating", false);
+            ghostAnimator.SetBool("Celebrating2", false);
+
             selectedBall.GetComponent<Rigidbody>().velocity = selectedBall.transform.forward * ghostThrowSpeed;
             selectedBall.GetComponent<AudioSource>().Play();
         }
@@ -103,19 +110,25 @@ public class BowlingGhost : MonoBehaviour
 
     void ghostAlleyReset()
     {
+        hideGhostKnockedPins();
+
         if (ghostCurrentThrow == 2)
         {
+            if (ghostHitStrike())
+            {
+                ghostAnimator.SetBool("Celebrating2", true);
+            }
+
             resetPins();
             ghostCurrentThrow = 1;
         }
         else
         {
-            hideGhostKnockedPins();
-
             if (ghostHitStrike())
             {
                 ghostCurrentThrow = 1;
                 resetPins();
+                ghostAnimator.SetBool("Celebrating", true);
             }
             else
             {
