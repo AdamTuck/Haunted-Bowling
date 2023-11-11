@@ -6,6 +6,7 @@ using TMPro;
 public class BowlingScoring : MonoBehaviour
 {
     PinManager pinManager;
+    GameManager gameManager;
 
     [SerializeField] private TextMeshProUGUI[] roll1Texts;
     [SerializeField] private TextMeshProUGUI[] roll2Texts;
@@ -33,13 +34,13 @@ public class BowlingScoring : MonoBehaviour
     [SerializeField] private GameObject strikeSprite;
     [SerializeField] private GameObject spareSprite;
 
-    [SerializeField] private AudioSource strikeAudio;
-    [SerializeField] private AudioSource spareAudio;
-
     // Start is called before the first frame update
     void Start()
     {
         pinManager = GetComponent<PinManager>();
+        gameManager = FindObjectOfType<GameManager>();
+
+        hideScoreSheet();
     }
 
     // Update is called once per frame
@@ -355,22 +356,22 @@ public class BowlingScoring : MonoBehaviour
         {
             strikeSprite.SetActive(true);
             celebrationScreen.SetActive(true);
-            strikeAudio.Play();
+            gameManager.soundManager.PlaySound("strike");
         }
         else if (justThrewSpare)
         {
             spareSprite.SetActive(true);
             celebrationScreen.SetActive(true);
-            spareAudio.Play();
+            gameManager.soundManager.PlaySound("spare");
         }
 
-        LeanTween.moveLocalY(scoreSheetContainer, -175.7391f, 0.5f);
+        LeanTween.moveLocalY(scoreSheetContainer, -180f, 0.5f);
         scoreSheetShowing = true;
     }
 
     public void hideScoreSheet ()
     {
-        LeanTween.moveLocalY(scoreSheetContainer, -260, 0.5f);
+        LeanTween.moveLocalY(scoreSheetContainer, -350f, 0.5f);
         scoreSheetShowing = false;
         justThrewStrike = false;
         justThrewSpare = false;

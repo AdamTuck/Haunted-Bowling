@@ -7,6 +7,9 @@ public class GameManager : MonoBehaviour
     PlayerController playerController;
     PinManager pinManager;
     BowlingScoring bowlingScorer;
+    public SoundManager soundManager;
+
+    [SerializeField] private GameObject mobileInputCanvas;
 
     // Start is called before the first frame update
     void Start()
@@ -14,6 +17,13 @@ public class GameManager : MonoBehaviour
         playerController = FindObjectOfType<PlayerController>();
         pinManager = FindObjectOfType<PinManager>();
         bowlingScorer = FindObjectOfType<BowlingScoring>();
+        soundManager = FindObjectOfType<SoundManager>();
+
+#if UNITY_ANDROID || UNITY_IOS
+        mobileInputCanvas.SetActive(true);
+#else
+        mobileInputCanvas.SetActive(false);
+#endif
 
         StartGame();
     }

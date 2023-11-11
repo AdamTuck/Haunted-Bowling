@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     BowlingScoring bowlingScorer;
+    [SerializeField] private SoundManager soundManager;
 
     [SerializeField] private Transform throwingArrow;
     [SerializeField] private Animator arrowAnimator;
@@ -23,6 +24,8 @@ public class PlayerController : MonoBehaviour
     public float throwProgressDuration;
     public float throwCompletedDuration;
 
+    private float mobileHorizontalAxis;
+
     private void Start()
     {
         bowlingScorer = GetComponent<BowlingScoring>();
@@ -35,25 +38,31 @@ public class PlayerController : MonoBehaviour
 
         UpdateThrowArrow();
 
-        ThrowBall();
+        TryThrowBall();
     }
 
-    private void ThrowBall()
+    public void ThrowBall()
+    {
+        if (!throwInProgress && !throwCompleted && !bowlingScorer.scoreSheetShowing)
+        {
+            throwInProgress = true;
+            arrowAnimator.SetBool("Aiming", false);
+
+            selectedBall = Instantiate(bowlingBallColours[Random.Range(0, 8)], 
+                new Vector3(throwingArrow.position.x, ballSpawnPoint.transform.position.y, 
+                ballSpawnPoint.transform.position.z), throwingArrow.transform.rotation);
+
+            selectedBall.GetComponent<Rigidbody>().velocity = selectedBall.transform.forward * throwSpeed;
+            soundManager.PlaySound("ballThrow");
+            soundManager.PlaySound("ballRolling");
+        }
+    }
+
+    private void TryThrowBall()
     {
         if (Input.GetKey(KeyCode.W))
         {
-            if (!throwInProgress && !throwCompleted && !bowlingScorer.scoreSheetShowing)
-            {
-                throwInProgress = true;
-                arrowAnimator.SetBool("Aiming", false);
-
-                selectedBall = Instantiate(bowlingBallColours[Random.Range(0, 8)], 
-                    new Vector3(throwingArrow.position.x, ballSpawnPoint.transform.position.y, 
-                    ballSpawnPoint.transform.position.z), throwingArrow.transform.rotation);
-
-                selectedBall.GetComponent<Rigidbody>().velocity = selectedBall.transform.forward * throwSpeed;
-                selectedBall.GetComponent<AudioSource>().Play();
-            }
+            ThrowBall();
         }
     }
 
@@ -94,9 +103,34 @@ public class PlayerController : MonoBehaviour
             arrowAnimator.SetBool("Aiming", true);
         }
 
-        float movePosition = Input.GetAxis("Horizontal") * playerMoveSpeed * Time.deltaTime;
+        float movePosition;
+
+#if UNITY_STANDALONE || UNITY_EDITOR
+        movePosition = Input.GetAxis("Horizontal") * playerMoveSpeed * Time.deltaTime;
+#elif UNITY_ANDROID || UNITY_IOS
+        movePosition = mobileHorizontalAxis * playerMoveSpeed * Time.deltaTime;
+#endif
+
         throwingArrow.position = new Vector3(Mathf.Clamp(throwingArrow.position.x + movePosition, arrowMinX, arrowMaxX), 
             throwingArrow.position.y, throwingArrow.position.z);
+
+    }
+
+    public void setMobileHorizontal(bool isLeft)
+    {
+        if (isLeft)
+        {
+            mobileHorizontalAxis = -1;
+        }
+        else
+        {
+            mobileHorizontalAxis = 1;
+        }
+    }
+
+    public void ResetMobileHorizontal()
+    {
+        mobileHorizontalAxis = 0;
     }
 
     public void resetThrow ()
