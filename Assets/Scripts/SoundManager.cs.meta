@@ -3,16 +3,7 @@ guid: f611fa291ac127e4a8b4463871332c45
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences:
-  - ballSound: {instanceID: 0}
-  - uiSound: {instanceID: 0}
-  - pinSound: {instanceID: 0}
-  - ballThrowClip: {fileID: 8300000, guid: 8904d699230ccd64fb1a067e83cb474f, type: 3}
-  - ballRollingClip: {fileID: 8300000, guid: 2b2494c9debaeb4439a2906ac62138df, type: 3}
-  - pinCollisionClip: {fileID: 8300000, guid: 0caed2eba83848347918f785cf1cee73, type: 3}
-  - spareClip: {fileID: 8300000, guid: 943cc6b53f8668f418db8806d5aef109, type: 3}
-  - strikeClip: {fileID: 8300000, guid: 3e2631963e03eca42ae3c440d2cace1f, type: 3}
-  - ballInPit: {fileID: 8300000, guid: fe744a73097a9b84c985a19675fd28f0, type: 3}
+  defaultReferences: []
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

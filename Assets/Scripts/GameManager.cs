@@ -4,33 +4,25 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    PlayerController playerController;
-    PinManager pinManager;
-    BowlingScoring bowlingScorer;
-    public SoundManager soundManager;
+    public static GameManager instance;
+    public PlayerController playerController;
+    public PinManager pinManager;
+    public BowlingScoring bowlingScorer;
 
-    [SerializeField] private GameObject mobileInputCanvas;
-
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
-        playerController = FindObjectOfType<PlayerController>();
-        pinManager = FindObjectOfType<PinManager>();
-        bowlingScorer = FindObjectOfType<BowlingScoring>();
-        soundManager = FindObjectOfType<SoundManager>();
+        if (instance && instance != this)
+        {
+            Destroy(instance);
+            return;
+        }
 
-#if UNITY_ANDROID || UNITY_IOS
-        mobileInputCanvas.SetActive(true);
-#else
-        mobileInputCanvas.SetActive(false);
-#endif
-
-        StartGame();
+        instance = this;
     }
 
-    private void Update()
+    void Start()
     {
-        
+        StartGame();
     }
 
     public void StartGame ()

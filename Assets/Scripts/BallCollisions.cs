@@ -1,31 +1,26 @@
-    using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class BallCollisions : MonoBehaviour
 {
-    GameManager gameManager;
     PlayerController playerController;
     AudioSource ballRollAudio;
     AudioSource pinHitAudio;
 
-    bool hasHitPins;
-
     private void Start()
     {
-        gameManager = FindObjectOfType<GameManager>();
-        playerController = FindObjectOfType<PlayerController>();
+        playerController = GameManager.instance.playerController;
         ballRollAudio = GetComponent<AudioSource>();
-
-        hasHitPins = false;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Pin") && !hasHitPins)
+        if (collision.gameObject.CompareTag("Pin"))
         {
-            gameManager.soundManager.PlaySound("collide");
-            hasHitPins = true;
+            //Debug.Log("Hit Pin: " + collision.gameObject.name);
+            pinHitAudio = collision.gameObject.GetComponent<AudioSource>();
+            pinHitAudio.Play();
         }
     }
 
@@ -35,7 +30,7 @@ public class BallCollisions : MonoBehaviour
         {
             playerController.throwCompleted = true;
 
-            gameManager.soundManager.PlaySound("ballInPit");
+            ballRollAudio.Stop();
         }
     }
 }

@@ -17,12 +17,6 @@ public class PinManager : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public void hideKnockedPins ()
     {
         for (int i = 0; i < pins.Length; i++)

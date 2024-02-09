@@ -5,64 +5,104 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     BowlingScoring bowlingScorer;
-    [SerializeField] private SoundManager soundManager;
+    PlayerInput playerInput;
 
+    [Header("References")]
     [SerializeField] private Transform throwingArrow;
     [SerializeField] private Animator arrowAnimator;
-    public float playerMoveSpeed;
-    public GameObject bowlingBall;
-    public GameObject ballSpawnPoint;
     [SerializeField] private GameObject[] bowlingBallColours;
     [SerializeField] private GameObject selectedBall;
-    public float throwSpeed;
+    public GameObject bowlingBall;
+    public GameObject ballSpawnPoint;
+
+    [Header("Arrow Properties")]
+    public float playerArrowMoveSpeed;
     public float arrowMinX, arrowMaxX;
 
-    public bool throwInProgress;
-    public bool throwCompleted;
-    public float throwProgressTimer;
-    public float throwCompletedTimer;
+    [Header("Throw Properties")]
+    public float throwSpeed;
     public float throwProgressDuration;
     public float throwCompletedDuration;
+    private bool throwInProgress;
+    [HideInInspector] public bool throwCompleted;
+    private float throwProgressTimer;
+    private float throwCompletedTimer;
 
-    private float mobileHorizontalAxis;
+    [Header("Walk Around")]
+    [SerializeField] private float moveSpeed;
+    [SerializeField] private float gravity = -9.81f;
+    [SerializeField] private float turnSpeed;
+    [SerializeField] private CharacterController characterController;
+    [SerializeField] private GameObject bowlingCam;
+    [SerializeField] private GameObject fpsCam;
+    private Vector3 playerVelocity;
+    private bool isBowling;
 
     private void Start()
     {
-        bowlingScorer = GetComponent<BowlingScoring>();
+        bowlingScorer = GameManager.instance.bowlingScorer;
+        playerInput = PlayerInput.GetInstance();
+        isBowling = true;
     }
 
-    // Update is called once per frame
     void Update()
     {
         CheckThrowDuration();
-
+        CheckMoveType();
         UpdateThrowArrow();
 
-        TryThrowBall();
-    }
-
-    public void ThrowBall()
-    {
-        if (!throwInProgress && !throwCompleted && !bowlingScorer.scoreSheetShowing)
+        if (isBowling)
         {
-            throwInProgress = true;
-            arrowAnimator.SetBool("Aiming", false);
-
-            selectedBall = Instantiate(bowlingBallColours[Random.Range(0, 8)], 
-                new Vector3(throwingArrow.position.x, ballSpawnPoint.transform.position.y, 
-                ballSpawnPoint.transform.position.z), throwingArrow.transform.rotation);
-
-            selectedBall.GetComponent<Rigidbody>().velocity = selectedBall.transform.forward * throwSpeed;
-            soundManager.PlaySound("ballThrow");
-            soundManager.PlaySound("ballRolling");
+            ThrowBall();
+        }
+        else
+        {
+            MovePlayer();
+            RotatePlayer();
         }
     }
 
-    private void TryThrowBall()
+    void CheckMoveType ()
     {
-        if (Input.GetKey(KeyCode.W))
+        if (playerInput.switchMovement)
         {
-            ThrowBall();
+            isBowling = !isBowling;
+            AdjustCamera();
+        }
+    }
+
+    void AdjustCamera ()
+    {
+        if (isBowling)
+        {
+            fpsCam.SetActive(false);
+            bowlingCam.SetActive(true);
+            UnlockCursor();
+        }
+        else
+        {
+            fpsCam.SetActive(true);
+            bowlingCam.SetActive(false);
+            LockCursor();
+        }
+    }
+
+    private void ThrowBall()
+    {
+        if (playerInput.throwBall)
+        {
+            if (!throwInProgress && !throwCompleted && !bowlingScorer.scoreSheetShowing)
+            {
+                throwInProgress = true;
+                arrowAnimator.SetBool("Aiming", false);
+
+                selectedBall = Instantiate(bowlingBallColours[Random.Range(0, 8)], 
+                    new Vector3(throwingArrow.position.x, ballSpawnPoint.transform.position.y, 
+                    ballSpawnPoint.transform.position.z), throwingArrow.transform.rotation);
+
+                selectedBall.GetComponent<Rigidbody>().velocity = selectedBall.transform.forward * throwSpeed;
+                selectedBall.GetComponent<AudioSource>().Play();
+            }
         }
     }
 
@@ -95,46 +135,62 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateThrowArrow()
     {
-        if (bowlingScorer.scoreSheetShowing || throwInProgress || throwCompleted)
-        {
+        if (bowlingScorer.scoreSheetShowing || throwInProgress || throwCompleted || !isBowling)
             arrowAnimator.SetBool("Aiming", false);
-        } else
-        {
-            arrowAnimator.SetBool("Aiming", true);
-        }
-
-        float movePosition;
-
-#if UNITY_STANDALONE || UNITY_EDITOR
-        movePosition = Input.GetAxis("Horizontal") * playerMoveSpeed * Time.deltaTime;
-#elif UNITY_ANDROID || UNITY_IOS
-        movePosition = mobileHorizontalAxis * playerMoveSpeed * Time.deltaTime;
-#endif
-
-        throwingArrow.position = new Vector3(Mathf.Clamp(throwingArrow.position.x + movePosition, arrowMinX, arrowMaxX), 
-            throwingArrow.position.y, throwingArrow.position.z);
-
-    }
-
-    public void setMobileHorizontal(bool isLeft)
-    {
-        if (isLeft)
-        {
-            mobileHorizontalAxis = -1;
-        }
         else
         {
-            mobileHorizontalAxis = 1;
-        }
-    }
+            arrowAnimator.SetBool("Aiming", true);
 
-    public void ResetMobileHorizontal()
-    {
-        mobileHorizontalAxis = 0;
+            float movePosition = playerInput.horizontal * playerArrowMoveSpeed * Time.deltaTime;
+            throwingArrow.position = new Vector3(Mathf.Clamp(throwingArrow.position.x + movePosition, arrowMinX, arrowMaxX),
+                throwingArrow.position.y, throwingArrow.position.z);
+        } 
     }
 
     public void resetThrow ()
     {
         //arrowAnimator.SetBool("Aiming", true);
+    }
+
+    // PLAYER MOVEMENT //
+    void MovePlayer()
+    {
+        characterController.Move((transform.forward * playerInput.vertical + transform.right * playerInput.horizontal) * moveSpeed * Time.deltaTime);
+
+        if (playerVelocity.y < 0)
+        {
+            playerVelocity.y = -2.0f;
+        }
+
+        playerVelocity.y += gravity * Time.deltaTime;
+
+        characterController.Move(playerVelocity * Time.deltaTime);
+    }
+
+    public void SetYVelocity(float value)
+    {
+        playerVelocity.y = value;
+    }
+
+    public float GetForwardSpeed()
+    {
+        return playerInput.vertical * moveSpeed;
+    }
+
+    void RotatePlayer()
+    {
+        transform.Rotate(Vector3.up * turnSpeed * Time.deltaTime * playerInput.mouseX);
+    }
+
+    void LockCursor ()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    void UnlockCursor()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }
